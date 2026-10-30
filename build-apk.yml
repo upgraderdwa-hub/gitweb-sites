@@ -1,0 +1,38 @@
+name: Build Sturk APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: "Полный URL api.php (например https://example.com/api.php)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Скачать исходники
+        uses: actions/checkout@v4
+
+      - name: Установить Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Подготовить Android-проект
+        run: flutter create --platforms=android .
+
+      - name: Получить зависимости
+        run: flutter pub get
+
+      - name: Собрать APK
+        run: flutter build apk --release --dart-define=STURK_API_URL="${{ inputs.api_url }}"
+
+      - name: Опубликовать APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sturk-Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
